@@ -1,6 +1,7 @@
 #include"relay_light.h"
 #include"constants.h"
 #include<ArduinoJson.h>
+#include<LittleFS.h>
 
 void onMqttConnect(bool sessionPresent)
 {
@@ -18,12 +19,26 @@ void RelayLight::setup()
     Serial.println("setup pin");
     setup_pin();
 
+    /*LittleFS.begin();
+	fs::File file = LittleFS.open("config.json","r");
+    if(file)
+    {
+        DynamicJsonDocument doc(256);
+        deserializeJson(doc,file);
+        
+        mqtt.setServer(doc["mqtt_server"].as<String>().c_str(), doc["mqtt_port"].as<unsigned short>());
+        mqtt.setCredentials(doc["mqtt_login"].as<String>().c_str(), doc["mqtt_password"].as<String>().c_str());
+        
+        file.close();
+    }*/
+
     Serial.println("setup mqtt");
     mqtt.onConnect(onMqttConnect);
     mqtt.onMessage(mqttOnMessage);
 
     mqtt.setServer("mqtt.dealgate.ru", 1883);
     mqtt.setCredentials("", "");
+    //mqtt.setKeepAlive()
 }
 void RelayLight::setup_pin()
 {
@@ -36,7 +51,8 @@ void RelayLight::setup_pin()
 };
 void RelayLight::setup_mqtt_subscribe()
 {
-    String name=board_name+ESP.getChipId();
+    String name=board_name+String(ESP.getChipId());
+    Serial.println(name);
     for(int index=0;index<RELAY_COUNT;index++)
     {
         String topic=name+MQTT_RELAY+String("/")+String(index);
