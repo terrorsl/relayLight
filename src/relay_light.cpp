@@ -88,7 +88,7 @@ void RelayLight::loop()
         digitalWrite(LED_PIN, LOW);
         if(manager.autoConnect(board_name, "12345678"))
         {
-            ESP.reset();
+            //ESP.reset();
         }
         else
         {
