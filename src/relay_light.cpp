@@ -31,7 +31,7 @@ void RelayLight::setup_pin()
     pinMode(SETUP_PIN, INPUT_PULLUP);
     pinMode(RELAY_PIN0, OUTPUT);
 
-    digitalWrite(LED_PIN, LOW);
+    digitalWrite(LED_PIN, HIGH);
     digitalWrite(RELAY_PIN0, LOW);
 };
 void RelayLight::setup_mqtt_subscribe()
@@ -69,14 +69,14 @@ void RelayLight::loop()
     if(digitalRead(SETUP_PIN)==LOW)
     {
         WiFiManager manager;
-        digitalWrite(LED_PIN, HIGH);
-        if(manager.autoConnect(board_name, "1234567"))
+        digitalWrite(LED_PIN, LOW);
+        if(manager.autoConnect(board_name, "12345678"))
         {
             ESP.reset();
         }
         else
         {
-            digitalWrite(LED_PIN, LOW);
+            digitalWrite(LED_PIN, HIGH);
         }
     }
     if(WiFi.isConnected()==false)
