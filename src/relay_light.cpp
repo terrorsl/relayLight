@@ -46,7 +46,7 @@ void RelayLight::setup()
     mqtt.setClientId(name.c_str());
     //mqtt.setKeepAlive(15);
 
-    //WiFi.setAutoConnect()
+    WiFi.persistent(true);
 }
 void RelayLight::setup_pin()
 {
@@ -70,6 +70,7 @@ void RelayLight::setup_mqtt_subscribe()
         String topic=name+MQTT_RELAY+String("/")+String(index);
         mqtt.subscribe(topic.c_str(),0);
     }
+    mqtt.publish("test",0,false,"test");
 };
 void RelayLight::update_mqtt(const char *topic, const char *payload)
 {
@@ -108,6 +109,7 @@ void RelayLight::loop()
     {
         Serial.println("Try connect to WIFI");
         WiFi.begin();
+        delay(500);
         return;
     }
     if(mqtt.connected()==false)
