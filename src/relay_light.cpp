@@ -37,13 +37,14 @@ void RelayLight::setup()
     mqtt.onMessage(mqttOnMessage);
 
     mqtt.setServer("mqtt.dealgate.ru", 1883);
-    mqtt.setCredentials("", "");
+    mqtt.setCredentials("terror", "terror_23011985");
 #if defined(ESP8266)
-    String name=board_name+String(ESP.getChipId());
+    boardName=board_name+String(ESP.getChipId());
 #else
-    String name=board_name+String(ESP.getEfuseMac());
+    boardName=board_name+String((unsigned long)ESP.getEfuseMac());
 #endif
-    mqtt.setClientId(name.c_str());
+    Serial.println(boardName);
+    mqtt.setClientId(boardName.c_str());
     //mqtt.setKeepAlive(15);
 
     WiFi.persistent(true);
@@ -59,15 +60,10 @@ void RelayLight::setup_pin()
 };
 void RelayLight::setup_mqtt_subscribe()
 {
-#if defined(ESP8266)
-    String name=board_name+String(ESP.getChipId());
-#else
-    String name=board_name+String(ESP.getEfuseMac());
-#endif
-    Serial.println(name);
+    Serial.println(boardName);
     for(int index=0;index<RELAY_COUNT;index++)
     {
-        String topic=name+MQTT_RELAY+String("/")+String(index);
+        String topic=boardName+MQTT_RELAY+String("/")+String(index);
         mqtt.subscribe(topic.c_str(),0);
     }
     mqtt.publish("test",0,false,"test");
@@ -109,13 +105,13 @@ void RelayLight::loop()
     {
         Serial.println("Try connect to WIFI");
         WiFi.begin();
-        delay(500);
+        delay(2000);
         return;
     }
     if(mqtt.connected()==false)
     {
         Serial.println("Try connect to MQTT");
         mqtt.connect();
-        delay(500);
+        delay(2000);
     }
 }
