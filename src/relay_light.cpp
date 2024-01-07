@@ -90,18 +90,17 @@ void RelayLight::loop()
         {
             //ESP.reset();
         }
-        else
-        {
-            digitalWrite(LED_PIN, HIGH);
-        }
+        digitalWrite(LED_PIN, HIGH);
     }
     if(WiFi.isConnected()==false)
     {
+        Serial.println("Try connect to WIFI");
         WiFi.begin();
         return;
     }
     if(mqtt.connected()==false)
     {
+        Serial.println("Try connect to MQTT");
         mqtt.connect();
     }
 }
