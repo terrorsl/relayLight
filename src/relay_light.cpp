@@ -38,7 +38,15 @@ void RelayLight::setup()
 
     mqtt.setServer("mqtt.dealgate.ru", 1883);
     mqtt.setCredentials("", "");
-    //mqtt.setKeepAlive()
+#if defined(ESP8266)
+    String name=board_name+String(ESP.getChipId());
+#else
+    String name=board_name+String(ESP.getEfuseMac());
+#endif
+    mqtt.setClientId(name.c_str());
+    //mqtt.setKeepAlive(15);
+
+    //WiFi.setAutoConnect()
 }
 void RelayLight::setup_pin()
 {
@@ -51,7 +59,11 @@ void RelayLight::setup_pin()
 };
 void RelayLight::setup_mqtt_subscribe()
 {
+#if defined(ESP8266)
     String name=board_name+String(ESP.getChipId());
+#else
+    String name=board_name+String(ESP.getEfuseMac());
+#endif
     Serial.println(name);
     for(int index=0;index<RELAY_COUNT;index++)
     {
