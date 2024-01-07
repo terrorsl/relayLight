@@ -15,8 +15,10 @@ void RelayLight::setup()
 {
     Serial.begin(115200);
 
+    Serial.println("setup pin");
     setup_pin();
 
+    Serial.println("setup mqtt");
     mqtt.onConnect(onMqttConnect);
     mqtt.onMessage(mqttOnMessage);
 
@@ -34,7 +36,7 @@ void RelayLight::setup_pin()
 };
 void RelayLight::setup_mqtt_subscribe()
 {
-    String name="relayLight"+ESP.getChipId();
+    String name=board_name+ESP.getChipId();
     for(int index=0;index<RELAY_COUNT;index++)
     {
         String topic=name+MQTT_RELAY+String("/")+String(index);
@@ -61,7 +63,6 @@ void RelayLight::update_mqtt(const char *topic, const char *payload)
             digitalWrite(RELAY_PIN0, LOW);
         }
     }
-    //doc["switch"];
 };
 void RelayLight::loop()
 {
@@ -69,7 +70,14 @@ void RelayLight::loop()
     {
         WiFiManager manager;
         digitalWrite(LED_PIN, HIGH);
-        manager.autoConnect("relayLight", "1234567");
+        if(manager.autoConnect(board_name, "1234567"))
+        {
+            ESP.reset();
+        }
+        else
+        {
+            digitalWrite(LED_PIN, LOW);
+        }
     }
     if(WiFi.isConnected()==false)
     {
