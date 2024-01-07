@@ -116,5 +116,6 @@ void RelayLight::loop()
     {
         Serial.println("Try connect to MQTT");
         mqtt.connect();
+        delay(500);
     }
 }
