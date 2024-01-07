@@ -15,6 +15,8 @@ void RelayLight::setup()
 {
     Serial.begin(115200);
 
+    setup_pin();
+
     mqtt.onConnect(onMqttConnect);
     mqtt.onMessage(mqttOnMessage);
 
@@ -33,8 +35,11 @@ void RelayLight::setup_pin()
 void RelayLight::setup_mqtt_subscribe()
 {
     String name="relayLight"+ESP.getChipId();
-    String topic=name+MQTT_RELAY+String("/0");
-    mqtt.subscribe(topic.c_str(),0);
+    for(int index=0;index<RELAY_COUNT;index++)
+    {
+        String topic=name+MQTT_RELAY+String("/")+String(index);
+        mqtt.subscribe(topic.c_str(),0);
+    }
 };
 void RelayLight::update_mqtt(const char *topic, const char *payload)
 {
