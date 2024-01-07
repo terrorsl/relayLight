@@ -1,5 +1,6 @@
 #include"relay_light.h"
 #include"constants.h"
+#include<ArduinoJson.h>
 
 void onMqttConnect(bool sessionPresent)
 {
@@ -7,11 +8,13 @@ void onMqttConnect(bool sessionPresent)
 };
 void mqttOnMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
 {
-
+    relay.update_mqtt(topic, payload);
 };
 
 void RelayLight::setup()
 {
+    Serial.begin(115200);
+
     mqtt.onConnect(onMqttConnect);
     mqtt.onMessage(mqttOnMessage);
 
@@ -29,9 +32,31 @@ void RelayLight::setup_pin()
 };
 void RelayLight::setup_mqtt_subscribe()
 {
-    String topic="relayLight"+ESP.getChipId();
-    topic+=MQTT_RELAY;
+    String name="relayLight"+ESP.getChipId();
+    String topic=name+MQTT_RELAY+String("/0");
     mqtt.subscribe(topic.c_str(),0);
+};
+void RelayLight::update_mqtt(const char *topic, const char *payload)
+{
+    //if(topic==)
+    DynamicJsonDocument doc(256);
+	deserializeJson(doc, payload);
+
+    Serial.printf("%s-%s\n", topic, payload);
+
+    int index = atol(&topic[strlen(topic)-1]);
+    if(index==RELAY_PIN0)
+    {
+        if(doc["switch"]==true)
+        {
+            digitalWrite(RELAY_PIN0, HIGH);
+        }
+        else
+        {
+            digitalWrite(RELAY_PIN0, LOW);
+        }
+    }
+    //doc["switch"];
 };
 void RelayLight::loop()
 {
