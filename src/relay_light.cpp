@@ -21,7 +21,7 @@ void RelayLight::setup()
 
     LittleFS.begin();
 	fs::File file = LittleFS.open("/config.json","r");
-    if(file)
+    /*if(file)
     {
         Serial.println("load from config.json");
         DynamicJsonDocument doc(256);
@@ -39,10 +39,10 @@ void RelayLight::setup()
         
         file.close();
     }
-    else
+    else*/
     {
         mqtt.setServer("mqtt.dealgate.ru", 1883);
-        mqtt.setCredentials("", "");
+        mqtt.setCredentials("terror", "terror_23011985");
     }
 
     Serial.println("setup mqtt");
@@ -55,8 +55,8 @@ void RelayLight::setup()
 #endif
     Serial.println(boardName);
     mqtt.setClientId(boardName.c_str());
-    String topic=boardName+MQTT_WILL;
-    mqtt.setWill(topic.c_str(),0,true,"disconnected");
+    willTopic=boardName+MQTT_WILL;
+    mqtt.setWill(willTopic.c_str(),0,true,"disconnected");
 
     WiFi.persistent(true);
 }
@@ -125,6 +125,6 @@ void RelayLight::loop()
     {
         Serial.println("Try connect to MQTT");
         mqtt.connect();
-        delay(10000);
+        delay(500);
     }
 }

@@ -19,7 +19,7 @@ private:
 
     AsyncMqttClient mqtt;
     String boardName;
-    String mqtt_server, mqtt_login, mqtt_password;
+    String mqtt_server, mqtt_login, mqtt_password, willTopic;
 };
 
 extern RelayLight relay;
