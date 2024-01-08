@@ -21,7 +21,7 @@ void RelayLight::setup()
 
     LittleFS.begin();
 	fs::File file = LittleFS.open("/config.json","r");
-    /*if(file)
+    if(file)
     {
         Serial.println("load from config.json");
         DynamicJsonDocument doc(256);
@@ -30,19 +30,22 @@ void RelayLight::setup()
         //mqtt.setServer(doc["mqtt_server"].as<String>().c_str(), doc["mqtt_port"].as<unsigned short>());
         mqtt_server=doc["mqtt_server"].as<String>();
         uint16_t port = doc["mqtt_port"].as<unsigned short>();
-        Serial.println(mqtt_server);
-        Serial.println(port);
         mqtt.setServer(mqtt_server.c_str(), port);
         mqtt_login = doc["mqtt_login"].as<String>();
         mqtt_password = doc["mqtt_password"].as<String>();
-        mqtt.setCredentials("terror", "terror_23011985");
+        mqtt.setCredentials(mqtt_login.c_str(), mqtt_password.c_str());
+
+        Serial.println(mqtt_server);
+        Serial.println(port);
+        Serial.println(mqtt_login);
+        Serial.println(mqtt_password);
         
         file.close();
     }
-    else*/
+    else
     {
         mqtt.setServer("mqtt.dealgate.ru", 1883);
-        mqtt.setCredentials("terror", "terror_23011985");
+        mqtt.setCredentials("", "");
     }
 
     Serial.println("setup mqtt");
