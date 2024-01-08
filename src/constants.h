@@ -17,7 +17,8 @@
 
 #define board_name "relayLight"
 
-#define MQTT_STATE "/state"
+#define MQTT_WILL "/status"
+#define MQTT_RELAY_STATE "/relay/state"
 #define MQTT_RELAY "/relay"
 
 #endif

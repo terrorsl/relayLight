@@ -19,25 +19,35 @@ void RelayLight::setup()
     Serial.println("setup pin");
     setup_pin();
 
-    /*LittleFS.begin();
-	fs::File file = LittleFS.open("config.json","r");
+    LittleFS.begin();
+	fs::File file = LittleFS.open("/config.json","r");
     if(file)
     {
+        Serial.println("load from config.json");
         DynamicJsonDocument doc(256);
         deserializeJson(doc,file);
         
-        mqtt.setServer(doc["mqtt_server"].as<String>().c_str(), doc["mqtt_port"].as<unsigned short>());
-        mqtt.setCredentials(doc["mqtt_login"].as<String>().c_str(), doc["mqtt_password"].as<String>().c_str());
+        //mqtt.setServer(doc["mqtt_server"].as<String>().c_str(), doc["mqtt_port"].as<unsigned short>());
+        mqtt_server=doc["mqtt_server"].as<String>();
+        uint16_t port = doc["mqtt_port"].as<unsigned short>();
+        Serial.println(mqtt_server);
+        Serial.println(port);
+        mqtt.setServer(mqtt_server.c_str(), port);
+        mqtt_login = doc["mqtt_login"].as<String>();
+        mqtt_password = doc["mqtt_password"].as<String>();
+        mqtt.setCredentials("terror", "terror_23011985");
         
         file.close();
-    }*/
+    }
+    else
+    {
+        mqtt.setServer("mqtt.dealgate.ru", 1883);
+        mqtt.setCredentials("", "");
+    }
 
     Serial.println("setup mqtt");
     mqtt.onConnect(onMqttConnect);
     mqtt.onMessage(mqttOnMessage);
-
-    mqtt.setServer("mqtt.dealgate.ru", 1883);
-    mqtt.setCredentials("terror", "terror_23011985");
 #if defined(ESP8266)
     boardName=board_name+String(ESP.getChipId());
 #else
@@ -45,7 +55,8 @@ void RelayLight::setup()
 #endif
     Serial.println(boardName);
     mqtt.setClientId(boardName.c_str());
-    //mqtt.setKeepAlive(15);
+    String topic=boardName+MQTT_WILL;
+    mqtt.setWill(topic.c_str(),0,true,"disconnected");
 
     WiFi.persistent(true);
 }
@@ -87,6 +98,8 @@ void RelayLight::update_mqtt(const char *topic, const char *payload)
         {
             digitalWrite(RELAY_PIN0, LOW);
         }
+        String topic=boardName+MQTT_RELAY_STATE+"/"+String(index);
+        mqtt.publish(topic.c_str(),0,false,doc["switch"]);
     }
 };
 void RelayLight::loop()
@@ -112,6 +125,6 @@ void RelayLight::loop()
     {
         Serial.println("Try connect to MQTT");
         mqtt.connect();
-        delay(2000);
+        delay(10000);
     }
 }
