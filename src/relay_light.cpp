@@ -92,6 +92,7 @@ void RelayLight::setup()
     mqtt.setClientId(boardName.c_str());
     willTopic=boardName+MQTT_WILL;
     mqtt.setWill(willTopic.c_str(),0,true,"disconnected");
+    mqtt.setKeepAlive(60);
 
     WiFi.persistent(true);
 }
@@ -104,6 +105,7 @@ void RelayLight::setup_pin()
     {
         pinMode(pins[index].pin, OUTPUT);
         digitalWrite(pins[index].pin, pins[index].safe_state);
+        relay_state[index]=pins[index].safe_state;
     }
 
     digitalWrite(LED_PIN, HIGH);
@@ -115,7 +117,17 @@ void RelayLight::setup_mqtt_subscribe()
     {
         String topic=boardName+MQTT_RELAY+String("/")+String(index);
         mqtt.subscribe(topic.c_str(),0);
+
+        mqtt_send_relay_state(index);
     }
+    mqtt.publish(willTopic.c_str(),0,true,"connected");
+};
+void RelayLight::mqtt_send_relay_state(unsigned char index)
+{
+    String state_topic=boardName+MQTT_RELAY_STATE;
+    char payload[256];
+    sprintf(payload, "{\"relay\":%d,\"switch\":%d}", index, relay_state[index]);
+    mqtt.publish(state_topic.c_str(),0,false,payload);
 };
 DynamicJsonDocument RelayLight::loadConfig()
 {
@@ -152,7 +164,6 @@ void RelayLight::set_mqtt_params(const char *server, unsigned short port, const 
 };
 void RelayLight::update_mqtt(const char *topic, const char *payload)
 {
-    //if(topic==)
     DynamicJsonDocument doc(256);
 	deserializeJson(doc, payload);
 
@@ -162,23 +173,11 @@ void RelayLight::update_mqtt(const char *topic, const char *payload)
     if(index >= RELAY_COUNT)
         return;
 
-    digitalWrite(pins[index].pin, doc["switch"].as<unsigned char>());
-    String state_topic=boardName+MQTT_RELAY_STATE+"/"+String(index);
-    mqtt.publish(state_topic.c_str(),0,false,doc["switch"]);
+    relay_state[index]=doc["switch"].as<unsigned char>();
 
-    /*if(index==RELAY_PIN0)
-    {
-        if(doc["switch"]==true)
-        {
-            digitalWrite(RELAY_PIN0, HIGH);
-        }
-        else
-        {
-            digitalWrite(RELAY_PIN0, LOW);
-        }
-        String topic=boardName+MQTT_RELAY_STATE+"/"+String(index);
-        mqtt.publish(topic.c_str(),0,false,doc["switch"]);
-    }*/
+    digitalWrite(pins[index].pin, relay_state[index]);
+
+    mqtt_send_relay_state(index);
 };
 void RelayLight::loop()
 {
@@ -191,14 +190,14 @@ void RelayLight::loop()
         params[3]=new WiFiManagerParameter("mqtt_password","MQTT Password",mqtt_password.c_str(),40);
         for(int index=0;index<WIFI_MANAGER_PARAM_COUNT;index++)
             manager.addParameter(params[index]);
-        manager.setSaveConfigCallback(saveWifiManagerParam);
+        //manager.setSaveConfigCallback(saveWifiManagerParam);
         manager.setTitle("Relay Light");
         digitalWrite(LED_PIN, LOW);
-        manager.startConfigPortal(board_name,"12345678");
-        /*if(manager.autoConnect(board_name, "12345678"))
+        if(manager.startConfigPortal(board_name,"12345678"))
         {
-            //ESP.reset();
-        }*/
+            set_mqtt_params(params[0]->getValue(),atol(params[1]->getValue()),
+                params[2]->getValue(), params[3]->getValue());
+        }
         for(int index=0;index<WIFI_MANAGER_PARAM_COUNT;index++)
             delete params[index];
         digitalWrite(LED_PIN, HIGH);
@@ -214,6 +213,6 @@ void RelayLight::loop()
     {
         Serial.println("Try connect to MQTT");
         mqtt.connect();
-        delay(500);
+        delay(1000);
     }
 }

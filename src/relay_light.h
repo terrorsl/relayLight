@@ -12,6 +12,7 @@ struct Relay
 {
     unsigned char pin;
     unsigned char safe_state;
+    unsigned char state;
 };
 
 const Relay pins[]={
@@ -44,9 +45,13 @@ private:
     DynamicJsonDocument loadConfig();
     void saveConfig(DynamicJsonDocument *doc);
 
+    void mqtt_send_relay_state(unsigned char index);
+
     AsyncMqttClient mqtt;
     String boardName;
     String mqtt_server, mqtt_login, mqtt_password, willTopic;
+
+    unsigned char relay_state[RELAY_COUNT];
 };
 
 extern RelayLight relay;
