@@ -53,33 +53,6 @@ void RelayLight::setup()
     Serial.println(mqtt_login);
     Serial.println(mqtt_password);
 
-	/*fs::File file = LittleFS.open("/config.json","r");
-    if(file)
-    {
-        Serial.println("load from config.json");
-        DynamicJsonDocument doc(256);
-        deserializeJson(doc,file);
-
-        mqtt_server=doc["mqtt_server"].as<String>();
-        uint16_t port = doc["mqtt_port"].as<unsigned short>();
-        mqtt.setServer(mqtt_server.c_str(), port);
-        mqtt_login = doc["mqtt_login"].as<String>();
-        mqtt_password = doc["mqtt_password"].as<String>();
-        mqtt.setCredentials(mqtt_login.c_str(), mqtt_password.c_str());
-
-        Serial.println(mqtt_server);
-        Serial.println(port);
-        Serial.println(mqtt_login);
-        Serial.println(mqtt_password);
-        
-        file.close();
-    }
-    else
-    {
-        mqtt.setServer("mqtt.dealgate.ru", 1883);
-        mqtt.setCredentials("", "");
-    }*/
-
     Serial.println("setup mqtt");
     mqtt.onConnect(onMqttConnect);
     mqtt.onMessage(mqttOnMessage);
@@ -119,9 +92,6 @@ void RelayLight::setup_mqtt_subscribe()
 
     for(int index=0;index<RELAY_COUNT;index++)
     {
-        //String topic=boardName+MQTT_RELAY+String("/")+String(index);
-        //mqtt.subscribe(topic.c_str(),0);
-
         mqtt_send_relay_state(index);
     }
     mqtt.publish(willTopic.c_str(),0,true,"connected");
@@ -173,9 +143,6 @@ void RelayLight::update_mqtt(const char *topic, const char *payload)
 
     Serial.printf("%s-%s\n", topic, payload);
 
-    /*unsigned char index = atol(&topic[strlen(topic)-1]);
-    if(index >= RELAY_COUNT)
-        return;*/
     String name;
     for(int index=0;index<RELAY_COUNT;index++)
     {
