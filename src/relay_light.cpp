@@ -113,10 +113,14 @@ void RelayLight::setup_pin()
 void RelayLight::setup_mqtt_subscribe()
 {
     Serial.println(boardName);
+
+    String topic=boardName+MQTT_RELAY;
+    mqtt.subscribe(topic.c_str(),0);
+
     for(int index=0;index<RELAY_COUNT;index++)
     {
-        String topic=boardName+MQTT_RELAY+String("/")+String(index);
-        mqtt.subscribe(topic.c_str(),0);
+        //String topic=boardName+MQTT_RELAY+String("/")+String(index);
+        //mqtt.subscribe(topic.c_str(),0);
 
         mqtt_send_relay_state(index);
     }
@@ -169,15 +173,21 @@ void RelayLight::update_mqtt(const char *topic, const char *payload)
 
     Serial.printf("%s-%s\n", topic, payload);
 
-    unsigned char index = atol(&topic[strlen(topic)-1]);
+    /*unsigned char index = atol(&topic[strlen(topic)-1]);
     if(index >= RELAY_COUNT)
-        return;
-
-    relay_state[index]=doc["switch"].as<unsigned char>();
-
-    digitalWrite(pins[index].pin, relay_state[index]);
-
-    mqtt_send_relay_state(index);
+        return;*/
+    String name;
+    for(int index=0;index<RELAY_COUNT;index++)
+    {
+        name="relay"+String(index);
+        if(doc.containsKey(name))
+        {
+            relay_state[index]=doc[name].as<unsigned char>();
+            digitalWrite(pins[index].pin, relay_state[index]);
+            mqtt_send_relay_state(index);
+            return;
+        }
+    }
 };
 void RelayLight::loop()
 {
